@@ -1,0 +1,142 @@
+import streamlit as st
+
+# Thiết lập giao diện Tím nhạt loang - Sang trọng, nhã nhặn
+st.set_page_config(page_title="Elite Portfolio Strategy", layout="centered")
+
+st.markdown("""
+    <style>
+    /* Nền màu trắng lụa hơi ánh tím cực nhẹ */
+    .stApp {
+        background: linear-gradient(135deg, #FDFCFB 0%, #F5F7FA 100%);
+    }
+    /* Tiêu đề màu Tím đậm (Deep Violet) nhưng thanh mảnh */
+    h1, h2, h3 {
+        color: #4B0082;
+        font-family: 'Helvetica Neue', sans-serif;
+        font-weight: 300;
+        letter-spacing: 1px;
+        text-align: center;
+    }
+    /* Các thẻ Metric màu Tím Lavender */
+    [data-testid="stMetricValue"] {
+        color: #9370DB !important;
+        font-family: 'Georgia', serif;
+    }
+    /* Nút bấm hiệu ứng loang màu Tím sang Hồng nhạt */
+    .stButton>button {
+        background: linear-gradient(to right, #9370DB, #D8BFD8);
+        color: white;
+        border-radius: 25px;
+        border: none;
+        height: 3.5em;
+        width: 100%;
+        font-weight: bold;
+        font-size: 16px;
+        box-shadow: 0 4px 15px rgba(147, 112, 219, 0.3);
+        transition: all 0.4s ease;
+    }
+    .stButton>button:hover {
+        background: linear-gradient(to right, #D8BFD8, #9370DB);
+        transform: scale(1.02);
+        box-shadow: 0 6px 20px rgba(147, 112, 219, 0.5);
+    }
+    /* Khung báo cáo màu Trắng trong suốt (Frosted Glass effect) */
+    .report-box {
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 30px;
+        border-radius: 20px;
+        border-left: 10px solid #E6E6FA;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+        backdrop-filter: blur(10px);
+    }
+    /* Tinh chỉnh input cho nhã nhặn */
+    .stNumberInput label, .stTextInput label {
+        color: #6A5ACD;
+        font-weight: 500;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.title("💜 ASSET STRATEGY REPORT")
+st.write("---")
+
+# --- KHỐI NHẬP LIỆU ---
+st.subheader("📋 TRẠNG THÁI VỊ THẾ")
+with st.container():
+    c1, c2 = st.columns(2)
+    with c1:
+        ticker = st.text_input("MÃ TÀI SẢN", value="VND").upper()
+        so_luong = st.number_input("KHỐI LƯỢNG NẮM GIỮ", value=10000, step=1000)
+    with c2:
+        gia_von = st.number_input("GIÁ VỐN BÌNH QUÂN", value=25000)
+        gia_ban = st.number_input("GIÁ THỊ TRƯỜNG HIỆN TẠI", value=32000)
+
+# Tính toán ROI
+roi = ((gia_ban / gia_von) - 1) * 100
+st.write("")
+col_m1, col_m2 = st.columns(2)
+col_m1.metric("LỢI NHUẬN TỰ THÂN", f"{(gia_ban - gia_von) * so_luong:,.0f} VNĐ")
+col_m2.metric("TỶ SUẤT (ROI)", f"{roi:.2f}%")
+
+# --- THÔNG TIN QUYỀN LỢI ---
+st.subheader("✨ TỐI ƯU HÓA QUYỀN LỢI")
+c3, c4 = st.columns(2)
+with c3:
+    div_cash_rate = st.number_input("Cổ tức tiền mặt (%)", value=15.0)
+    phi_gd = st.number_input("Phí môi giới (%)", value=0.1) / 100
+with c4:
+    div_stock_rate = st.number_input("Cổ tức cổ phiếu (%)", value=10.0)
+
+if st.button("XUẤT BÁO CÁO CHIẾN LƯỢC"):
+    # Tính toán chuẩn xác theo công thức của Chi
+    gia_tri_ban = so_luong * gia_ban
+    thue_ban = 0.001 * gia_tri_ban # Thuế 0.1%
+    phi_moi_gioi = phi_gd * gia_tri_ban
+    
+    tien_mat_moi_cp = 10000 * (div_cash_rate / 100)
+    thue_co_tuc_tong = (so_luong * tien_mat_moi_cp) * 0.05 # Thuế 5%
+    
+    gia_dieu_chinh = (gia_ban - tien_mat_moi_cp) / (1 + (div_stock_rate/100))
+
+    st.write("---")
+    st.write("### 📜 ĐỊNH LƯỢNG CHI PHÍ & VỊ THẾ")
+    
+    st.markdown(f"""
+    <div class="report-box">
+    <table style="width:100%; border-collapse: collapse; font-family: 'Segoe UI', sans-serif;">
+        <tr style="border-bottom: 1px solid #F3E5F5;">
+            <td style="padding: 15px; color: #4B0082;">Tổng giá trị thị trường</td>
+            <td style="text-align: right; font-weight: bold; color: #4B0082;">{gia_tri_ban:,.0f} đ</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #F3E5F5;">
+            <td style="padding: 15px; color: #6A5ACD;">Thuế giao dịch (0.1% giá trị bán)</td>
+            <td style="text-align: right; color: #BA55D3;">{thue_ban:,.0f} đ</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #F3E5F5;">
+            <td style="padding: 15px; color: #6A5ACD;">Phí môi giới tạm tính</td>
+            <td style="text-align: right; color: #BA55D3;">{phi_moi_gioi:,.0f} đ</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #F3E5F5;">
+            <td style="padding: 15px; color: #6A5ACD;">Thuế thu nhập cổ tức (5%)</td>
+            <td style="text-align: right; color: #BA55D3;">{thue_co_tuc_tong:,.0f} đ</td>
+        </tr>
+        <tr style="background-color: #FDF5FF;">
+            <td style="padding: 15px; font-weight: bold; color: #4B0082;">Giá điều chỉnh (Ex-dividend)</td>
+            <td style="text-align: right; color: #9370DB; font-size: 1.2em;"><b>{gia_dieu_chinh:,.0f} đ/CP</b></td>
+        </tr>
+    </table>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.write("---")
+    st.subheader("💡 ĐỊNH HƯỚNG QUẢN TRỊ")
+    
+    if roi >= 15:
+        st.info(f"🔮 **STRATEGY: RETAIN POSITION**\n\nBiên lợi nhuận {roi:.2f}% rất lý tưởng. Việc nắm giữ để nhận cổ tức giúp tối ưu hóa thuế phí dựa trên vị thế giá vốn sẵn có. Đây là thời điểm để gia tăng quy mô tài sản tĩnh lặng.")
+    elif roi < 0:
+        st.error(f"🔮 **STRATEGY: RE-STRUCTURE**\n\nVị thế hiện tại đang âm. Tác động của thuế khấu trừ cổ tức có thể làm tăng mức lỗ thực tế. Cân nhắc tái cấu trúc danh mục để bảo vệ dòng tiền.")
+    else:
+        st.warning(f"🔮 **STRATEGY: NEUTRAL**\n\nVùng giá nhạy cảm. Nhà đầu tư nên quan sát phản ứng tại ngưỡng giá điều chỉnh {gia_dieu_chinh:,.0f}đ trước khi ra quyết định tiếp theo.")
+
+st.write("---")
+st.caption("© 2026 Strategic Wealth Advisor | Luxury Digital Report")
